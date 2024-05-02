@@ -5,11 +5,18 @@ import openpyxl as xl
 from openpyxl.styles import Font
 
 
+# Creates workbook and sheet
+workbook = xl.Workbook()
+sheet = workbook.active
+sheet.title = 'BoxOfficeReport'
 
+# Define and append headers
+headers = ['No.','Movie TItle','Release Date','Number of Theaters','Total Gross','Average Gross by Theater']
+sheet.append(headers)
 
 
 #webpage = 'https://www.boxofficemojo.com/weekend/chart/'
-webpage = 'https://www.boxofficemojo.com/year/2022/'
+webpage = 'https://www.boxofficemojo.com/year/2024/'
 
 page = urlopen(webpage)			
 
@@ -18,43 +25,62 @@ soup = BeautifulSoup(page, 'html.parser')
 title = soup.title
 
 print(title.text)
-stock_data = soup.findAll("div",attrs={"class":"table-cell"})
 
-print(len(stock_data))
-print(stock_data[1].text)
-print(stock_data[12].text)
-counter = 1
+table_rows = soup.findAll("tr")
 
-#name, change pct, last price, calculated(previous price)
-
-for x in range(5):
-    name = stock_data[counter].text
-    change = float(stock_data[counter+2].text.strip("+").strip("%")) #Remove + and period
-    last_price = float(stock_data[counter+3].text)
+for row in table_rows[1:6]:
+    td = row.findAll("td")
+    number = td[0].text
+    title = td[1].text
+    release = td[8].text
+    Number_of_theaters = float(td[6].text.replace(",",""))
+    Total_gross = float(td[7].text.replace(",","").strip("$"))
+    Avg_gross_theater = Total_gross / Number_of_theaters
 
 
-    prev_price = round(last_price / (1+(change/100)),2)
+    #print(number)
+    #print(title)
+    #print(release)
+    #print(Number_of_theaters)
+    #print(Total_gross)
+    #print(Avg_gross_theater)
 
-    print(f"Company Name: {name}")
-    print(f"Change: {change}")
-    print(f"Price: {last_price}")
-    print(f"Previous: {prev_price}")
-    counter += 11
+    data = [number, title, release, Number_of_theaters, Total_gross, Avg_gross_theater]
+    sheet.append(data)
 
-#SOME USEFUL FUNCTIONS IN BEAUTIFULSOUP
-#-----------------------------------------------#
-# find(tag, attributes, recursive, text, keywords)
-# findAll(tag, attributes, recursive, text, limit, keywords)
+for col in ['D', 'E', 'F']:  #formats the columns 
+    for cell in sheet[col]:
+        if col == 'D':
+            cell.number_format = '#,##0'
+        elif col == 'E' or col == 'F':
+            cell.number_format = '"$ "#,##0.00'
 
-#Tags: find("h1","h2","h3", etc.)
-#Attributes: find("span", {"class":{"green","red"}})
-#Text: nameList = Objfind(text="the prince")
-#Limit = find with limit of 1
-#keyword: allText = Obj.find(id="title",class="text")
+for column_cells in sheet.columns: #Sets width to be the size of the cell 
+    length = max(len(str(cell.value)) for cell in column_cells) #Doesnt work with Total Gross yet
+    sheet.column_dimensions[column_cells[0].column_letter].width = (length+5)
+
+#Bolds Header Cells
+sheet['A1'].font = Font(name='Calibri',size=12,italic=False,bold=True)
+sheet['B1'].font = Font(name='Calibri',size=12,italic=False,bold=True)
+sheet['C1'].font = Font(name='Calibri',size=12,italic=False,bold=True)
+sheet['D1'].font = Font(name='Calibri',size=12,italic=False,bold=True)
+sheet['E1'].font = Font(name='Calibri',size=12,italic=False,bold=True)
+sheet['F1'].font = Font(name='Calibri',size=12,italic=False,bold=True)
 
 
-##
-##
-##
-##
+# Save workbook
+workbook.save('BoxOfficeReport.xlsx')
+
+
+
+
+# Requirements
+## Number
+## Movie Title
+## Release Date
+## Number of Theaters
+## Total Gross
+## Average Gross by Theater
+
+#add to excel file called BoxOfficeReport.xlsx
 
