@@ -1,6 +1,6 @@
 .venv/
-*api.json*
-*class_schedule.csv*
-*PythontoExcel.xlsx*
-*rest_countries.py*
-*south_america.html*
+api.json/
+class_schedule.csv/
+PythontoExcel.xlsx/
+rest_countries.py/
+south_america.html/
